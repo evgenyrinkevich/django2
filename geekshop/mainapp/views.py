@@ -4,33 +4,30 @@ from django.shortcuts import render
 import json
 import os
 
-from django.views.generic import DetailView
+from django.views.generic import DetailView, TemplateView, ListView
 
+from mainapp.mixin import BaseClassContextMixin
 from mainapp.models import Product, ProductCategory
 
 MODULE_DIR = os.path.dirname(__file__)
 
 
-# Create your views here.
-
-def index(request):
-    context = {
-        'title': 'Geekshop', }
-    return render(request, 'mainapp/index.html', context)
+class IndexTemplateView(TemplateView, BaseClassContextMixin):
+    template_name = 'mainapp/index.html'
+    title = 'Geekshop'
 
 
-def products(request,id_category=None,page=1):
-
+def products(request, id_category=None, page=1):
     context = {
         'title': 'Geekshop | Каталог',
     }
 
     if id_category:
-        products= Product.objects.filter(category_id=id_category)
+        products = Product.objects.filter(category_id=id_category, is_active=True)
     else:
-        products = Product.objects.all()
+        products = Product.objects.filter(is_active=True)
 
-    paginator = Paginator(products,per_page=3)
+    paginator = Paginator(products, per_page=3)
 
     try:
         products_paginator = paginator.page(page)
@@ -39,9 +36,8 @@ def products(request,id_category=None,page=1):
     except EmptyPage:
         products_paginator = paginator.page(paginator.num_pages)
 
-
     context['products'] = products_paginator
-    context['categories'] = ProductCategory.objects.all()
+    context['categories'] = ProductCategory.objects.filter(is_active=True)
     return render(request, 'mainapp/products.html', context)
 
 
@@ -57,4 +53,3 @@ class ProductDetail(DetailView):
     #     product = self.get_object()
     #     context['product'] = product
     #     return context
-

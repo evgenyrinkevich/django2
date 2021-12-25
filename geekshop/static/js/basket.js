@@ -17,8 +17,8 @@ window.onload = function () {
             {
                 url: "/baskets/add/" + t_href + "/",
                 success: function (data) {
-                    $('.card_add_basket').html(data.result)
-                    alert('товар добавлен вы корзину')
+                    $('.card_add_basket').html(data.result);
+                    alert('товар добавлен в корзину')
                 },
             });
         event.preventDefault()
