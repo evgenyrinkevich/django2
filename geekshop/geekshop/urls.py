@@ -20,11 +20,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.i18n import set_language
 
-from mainapp.views import index, products
+from mainapp.views import products, IndexTemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', index, name='index'),
+    path('', IndexTemplateView.as_view(), name='index'),
     path('products/', include('mainapp.urls', namespace='mainapp')),
     path('users/', include('authapp.urls', namespace='authapp')),
     path('baskets/', include('baskets.urls', namespace='baskets')),
