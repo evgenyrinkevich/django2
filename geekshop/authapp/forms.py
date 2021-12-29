@@ -4,8 +4,9 @@ import random
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 from django.core.exceptions import ValidationError
 from django import forms
+from django.forms import HiddenInput
 
-from authapp.models import User
+from authapp.models import User, UserProfile
 from authapp.validator import validate_name
 
 
@@ -74,3 +75,18 @@ class UserProfilerForm(UserChangeForm):
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control py-4'
         self.fields['image'].widget.attrs['class'] = 'custom-file-input'
+
+
+class UserProfileEditForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control py-4'
+            if field_name == 'user':
+                field.widget = HiddenInput()
+            if field_name == 'gender':
+                field.widget.attrs['class'] = 'form-control'
