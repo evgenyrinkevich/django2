@@ -13,11 +13,18 @@ from authapp.models import UserProfile
 
 
 def save_user_profile(backend, user, response, *args, **kwargs):
+    """
+    при регистрации через вк загружает инфо о пользователе
+    -возраст
+    -пол-
+    -о себе
+    -фото профиля
+    """
     if backend.name != 'vk-oauth2':
         return
 
     api_url = urlunparse(('http', 'api.vk.com', 'method/users.get', None,
-                          urlencode(OrderedDict(fields=','.join(('bdate', 'sex', 'about', 'photo_100')),
+                          urlencode(OrderedDict(fields=','.join(('bdate', 'sex', 'about', 'photo_100', 'personal')),
                                                 access_token=response['access_token'], v=5.131)), None
                           ))
 
@@ -37,6 +44,9 @@ def save_user_profile(backend, user, response, *args, **kwargs):
     if data['about']:
         user.userprofile.about = data['about']
 
+    if data['personal']['langs']:
+        user.userprofile.about += f"\nРазговаривает на языках: {','.join(data['personal']['langs'])}"
+
     bdate = datetime.strptime(data['bdate'], '%d.%m.%Y').date()
     age = timezone.now().date().year - bdate.year
 
@@ -46,11 +56,15 @@ def save_user_profile(backend, user, response, *args, **kwargs):
         user.delete()
         raise AuthForbidden('social_core.backends.vk.VKOAuth2')
 
+    # загружаем фото
     if data['photo_100']:
         image_url = data['photo_100']
         img_temp = NamedTemporaryFile(delete=True)
         img_temp.write(urlopen(image_url).read())
         img_temp.flush()
 
-        user.image.save("image_%s" % user.pk, File(img_temp))
+        if not user.image:
+            user.image.save("image_%s" % user.pk, File(img_temp))
+
+    print(data['personal']['langs'])
     user.save()
