@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from PIL import Image
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
@@ -28,6 +29,14 @@ class User(AbstractUser):
                   f'{settings.DOMAIN_NAME} click: \n{settings.DOMAIN_NAME}{verify_link} '
 
         return send_mail(subject, message, settings.EMAIL_HOST_USER, [self.email], fail_silently=False)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        img = Image.open(self.image.path)
+        if img.height > 350 or img.width > 350:
+            new_img = (350, 350)
+            img.thumbnail(new_img)
+            img.save(self.image.path)
 
 
 class UserProfile(models.Model):

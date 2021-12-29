@@ -1,6 +1,11 @@
+from urllib.request import urlopen
+
 import requests
 from collections import OrderedDict
 from datetime import datetime
+
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
 from django.utils import timezone
 from urllib.parse import urlencode, urlunparse
 from social_core.exceptions import AuthForbidden
@@ -12,7 +17,7 @@ def save_user_profile(backend, user, response, *args, **kwargs):
         return
 
     api_url = urlunparse(('http', 'api.vk.com', 'method/users.get', None,
-                          urlencode(OrderedDict(fields=','.join(('bdate', 'sex', 'about')),
+                          urlencode(OrderedDict(fields=','.join(('bdate', 'sex', 'about', 'photo_100')),
                                                 access_token=response['access_token'], v=5.131)), None
                           ))
 
@@ -41,4 +46,11 @@ def save_user_profile(backend, user, response, *args, **kwargs):
         user.delete()
         raise AuthForbidden('social_core.backends.vk.VKOAuth2')
 
+    if data['photo_100']:
+        image_url = data['photo_100']
+        img_temp = NamedTemporaryFile(delete=True)
+        img_temp.write(urlopen(image_url).read())
+        img_temp.flush()
+
+        user.image.save("image_%s" % user.pk, File(img_temp))
     user.save()
