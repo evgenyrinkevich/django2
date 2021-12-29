@@ -33,7 +33,7 @@ class RegisterListView(FormView, BaseClassContextMixin):
             user = form.save()
             user.send_verify_mail()
             messages.set_level(request, messages.SUCCESS)
-            messages.success(request, 'Регистрация успешна!')
+            messages.success(request, 'Регистрация успешна, ссылка для активации выслана на указанный email!')
             return HttpResponseRedirect(reverse('authapp:login'))
         else:
             messages.set_level(request, messages.ERROR)
@@ -48,7 +48,7 @@ class RegisterListView(FormView, BaseClassContextMixin):
                 user.activation_key = ''
                 user.is_active = True
                 user.save()
-                auth.login(self, user)
+                auth.login(self, user, backend='django.contrib.auth.backends.ModelBackend')
                 return render(self, 'authapp/verification.html')
             else:
                 print(f'error activation user: {user}')
