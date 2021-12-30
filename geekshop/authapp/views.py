@@ -1,14 +1,17 @@
 from django.contrib import messages, auth
+from django.contrib.auth import get_user_model
 from django.contrib.auth.views import LoginView, LogoutView
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.http import HttpResponseRedirect
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 
 # Create your views here.
 from django.urls import reverse, reverse_lazy
 from django.views.generic import FormView, UpdateView
 
-from authapp.forms import UserLoginForm, UserRegisterForm, UserProfilerForm
-from authapp.models import User
+from authapp.forms import UserLoginForm, UserRegisterForm, UserProfilerForm, UserProfileEditForm
+from authapp.models import User, UserProfile
 from baskets.models import Basket
 from mainapp.mixin import BaseClassContextMixin, UserDispatchMixin
 
@@ -33,7 +36,7 @@ class RegisterListView(FormView, BaseClassContextMixin):
             user = form.save()
             user.send_verify_mail()
             messages.set_level(request, messages.SUCCESS)
-            messages.success(request, 'Регистрация успешна!')
+            messages.success(request, 'Регистрация успешна, ссылка для активации выслана на указанный email!')
             return HttpResponseRedirect(reverse('authapp:login'))
         else:
             messages.set_level(request, messages.ERROR)
@@ -48,7 +51,7 @@ class RegisterListView(FormView, BaseClassContextMixin):
                 user.activation_key = ''
                 user.is_active = True
                 user.save()
-                auth.login(self, user)
+                auth.login(self, user, backend='django.contrib.auth.backends.ModelBackend')
                 return render(self, 'authapp/verification.html')
             else:
                 print(f'error activation user: {user}')
@@ -64,6 +67,14 @@ class ProfileFormView(UpdateView, BaseClassContextMixin, UserDispatchMixin):
     success_url = reverse_lazy('authapp:profile')
     title = 'GeekShop - Профиль'
 
+    def post(self, request, *args, **kwargs):
+        form = UserProfilerForm(request.POST, request.FILES, instance=request.user)
+        profile_form = UserProfileEditForm(request.POST, request.FILES,
+                                           instance=request.user.userprofile)
+        if form.is_valid() and profile_form.is_valid():
+            form.save()
+            return redirect(self.get_success_url())
+
     def form_valid(self, form):
         messages.set_level(self.request, messages.SUCCESS)
         messages.success(self.request, "Вы успешно зарегистрировались")
@@ -73,6 +84,19 @@ class ProfileFormView(UpdateView, BaseClassContextMixin, UserDispatchMixin):
     def get_object(self, *args, **kwargs):
         return get_object_or_404(User, pk=self.request.user.pk)
 
+    def get_context_data(self, **kwargs):
+        context = super(ProfileFormView, self).get_context_data(**kwargs)
+        context['profile'] = UserProfileEditForm(instance=self.request.user.userprofile)
+        return context
+
 
 class Logout(LogoutView):
     template_name = "mainapp/index.html"
+
+
+@receiver(post_save, sender=get_user_model())
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+    else:
+        instance.userprofile.save()
