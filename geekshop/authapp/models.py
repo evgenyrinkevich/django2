@@ -32,11 +32,12 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        img = Image.open(self.image.path)
-        if img.height > 350 or img.width > 350:
-            new_img = (350, 350)
-            img.thumbnail(new_img)
-            img.save(self.image.path)
+        if self.image:
+            img = Image.open(self.image.path)
+            if img.height > 350 or img.width > 350:
+                new_img = (350, 350)
+                img.thumbnail(new_img)
+                img.save(self.image.path)
 
 
 class UserProfile(models.Model):
