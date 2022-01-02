@@ -9,7 +9,7 @@ class Order(models.Model):
     PROCEEDED = 'P'
     PAID = 'D'
     READY = 'R'
-    CANCEL = 'C'
+    CANCELED = 'C'
 
     ORDER_STATUS_CHOICES = (
         (FORMING, 'формируется'),
@@ -17,7 +17,7 @@ class Order(models.Model):
         (PAID, 'оплачен'),
         (PROCEEDED, 'обрабатывается'),
         (READY, 'готов'),
-        (CANCEL, 'отменен'),
+        (CANCELED, 'отменен'),
     )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

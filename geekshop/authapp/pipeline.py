@@ -44,8 +44,8 @@ def save_user_profile(backend, user, response, *args, **kwargs):
     if data['about']:
         user.userprofile.about = data['about']
 
-    if data['personal']['langs']:
-        user.userprofile.langs = data['personal']['langs'][0] if len(data['personal']['langs']) > 0 else 'Русский'
+    if data['personal'].get('langs'):
+        user.userprofile.langs = data['personal'].get('langs')[0] if len(data['personal'].get('langs')) > 0 else 'Русский'
 
     bdate = datetime.strptime(data['bdate'], '%d.%m.%Y').date()
     age = timezone.now().date().year - bdate.year

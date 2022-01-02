@@ -117,3 +117,17 @@ def order_forming_complete(request, pk):
     order.status = Order.SENT_TO_PROCEED
     order.save()
     return HttpResponseRedirect(reverse('orders:list'))
+
+
+def order_change_status(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    status_dict = dict(Order.ORDER_STATUS_CHOICES)
+    if order.status in (Order.READY, Order.CANCELED):
+        order.status = Order.FORMING
+    else:
+        list_status = list(status_dict)
+        result_index = list_status[list_status.index(order.status) + 1]
+        order.status = result_index
+    order.save()
+    return HttpResponseRedirect(reverse('orders:list'))
+

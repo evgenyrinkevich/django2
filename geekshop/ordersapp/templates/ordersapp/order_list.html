@@ -48,6 +48,11 @@
                                 </a>
                             {% endif %}
                         </td>
+                        <td>
+                            <a href="{% url 'orders:order_change_status' item.pk %}">
+                                изменить статус
+                            </a>
+                        </td>
                     </tr>
                 {% endif %}
             {% endfor %}
