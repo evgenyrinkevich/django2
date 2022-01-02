@@ -48,7 +48,11 @@ class Order(models.Model):
         pass
 
     def delete(self, using=None, keep_parents=False):
-        pass
+        for item in self.orderitems.select_related('product'):
+            item.product.quantity += item.quantity
+            item.save()
+        self.is_active = False
+        self.save()
 
 
 class OrderItem(models.Model):
