@@ -4,7 +4,7 @@
 {% block content %}
    {% include 'ordersapp/includes/inc_order_summary.html' %}
    <div class="order_form">
-       <form action="" method="post">
+       <form action="" method="post" enctype="multipart/form-data">
            {% csrf_token %}
            {{ form.as_p }}
            <table class="table">

@@ -28,7 +28,7 @@ class OrderCreateView(CreateView, BaseClassContextMixin):
     def get_context_data(self, **kwargs):
         context = super(OrderCreateView, self).get_context_data(**kwargs)
 
-        OrderFormSet = inlineformset_factory(Order, OrderItem, OrderItemsForm, extra=1)
+        OrderFormSet = inlineformset_factory(Order, OrderItem, form=OrderItemsForm, extra=1)
         if self.request.POST:
             formset = OrderFormSet(self.request.POST)
         else:
@@ -36,10 +36,10 @@ class OrderCreateView(CreateView, BaseClassContextMixin):
             if basket_item:
                 OrderFormSet = inlineformset_factory(Order, OrderItem, OrderItemsForm, extra=basket_item.count())
                 formset = OrderFormSet()
-                for num, form in enumerate(formset.forms):
-                    form.initial['product'] = basket_item[num].product
-                    form.initial['quantity'] = basket_item[num].quantity
-                    form.initial['price'] = basket_item[num].product.price
+                for form, baskets in zip(formset.forms, basket_item):
+                    form.initial['product'] = baskets.product
+                    form.initial['quantity'] = baskets.quantity
+                    form.initial['price'] = baskets.product.price
                 # basket_item.delete()
             else:
                 formset = OrderFormSet()
@@ -53,7 +53,7 @@ class OrderCreateView(CreateView, BaseClassContextMixin):
 
         with transaction.atomic():
             form.instance.user = self.request.user
-            self.object = form.save()
+            result = super().form_valid(form)
             if orderitems.is_valid():
                 orderitems.instance = self.object
                 orderitems.save()
@@ -61,7 +61,7 @@ class OrderCreateView(CreateView, BaseClassContextMixin):
             if self.object.get_total_cost() == 0:
                 self.object.delete()
 
-        return super(OrderCreateView, self).form_valid(form)
+        return result
 
 
 class OrderUpdateView(UpdateView, BaseClassContextMixin):
@@ -90,7 +90,7 @@ class OrderUpdateView(UpdateView, BaseClassContextMixin):
         orderitems = context['orderitems']
 
         with transaction.atomic():
-            self.object = form.save()
+            result = super().form_valid(form)
             if orderitems.is_valid():
                 orderitems.instance = self.object
                 orderitems.save()
@@ -98,7 +98,7 @@ class OrderUpdateView(UpdateView, BaseClassContextMixin):
             if self.object.get_total_cost() == 0:
                 self.object.delete()
 
-        return super(OrderUpdateView, self).form_valid(form)
+        return result
 
 
 class OrderDeleteView(DeleteView, BaseClassContextMixin):
@@ -120,6 +120,9 @@ def order_forming_complete(request, pk):
 
 
 def order_change_status(request, pk):
+    """
+    Переключает статус заказа
+    """
     order = get_object_or_404(Order, pk=pk)
     status_dict = dict(Order.ORDER_STATUS_CHOICES)
     if order.status in (Order.READY, Order.CANCELED):

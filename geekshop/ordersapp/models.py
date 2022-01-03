@@ -47,6 +47,9 @@ class Order(models.Model):
     def get_items(self):
         pass
 
+    def is_forming(self):
+        return self.status == Order.FORMING
+
     def delete(self, using=None, keep_parents=False):
         for item in self.orderitems.select_related('product'):
             item.product.quantity += item.quantity
