@@ -40,7 +40,7 @@ class OrderCreateView(CreateView, BaseClassContextMixin):
                     form.initial['product'] = baskets.product
                     form.initial['quantity'] = baskets.quantity
                     form.initial['price'] = baskets.product.price
-                # basket_item.delete()
+                basket_item.delete()
             else:
                 formset = OrderFormSet()
 
