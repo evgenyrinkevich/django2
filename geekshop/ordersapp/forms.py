@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import HiddenInput
 
 from ordersapp.models import Order, OrderItem
 
