@@ -56,16 +56,23 @@ window.onload = function (event) {
 	$('.order_form').on('change', 'select', function (event) {
         let orderitemPk = parseInt($(event.target).val());
         console.log(orderitemPk);
-//        $("#id_orderitems-" + orderitemPk.toString() + "-product").val(orderitemPk.toString());
-//        console.log("#id_orderitems-" + orderitemPk.toString() + "-product");
+     	orderitem_num = parseInt(event.target.name.replace('orderitems-', '').replace('-product', ''));
+     	
         let priceToChangeElement = $(event.target).parent().parent().find('.td3');
-        // $.ajax({
-        //     url: '/orders/order/update/price/' + orderitemPk + '/',
-        //     type: "GET",
-        //     success: function (data) {
-        //         priceToChangeElement.html(data.result);
-        //     }
-        // });
+        $.ajax({
+            url: '/orders/order/update/price/' + orderitemPk + '/',
+            type: "GET",
+            success: function (data) {	
+
+                priceToChangeElement.html(data.result);
+                let orderitemPrice = data.result;
+                console.log(orderitemPrice);
+                price_arr[orderitem_num] = orderitemPrice;
+
+            }
+        });
+
+        
     });
 
 	$('.formset_row').formset({

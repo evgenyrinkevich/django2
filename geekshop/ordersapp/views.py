@@ -1,12 +1,13 @@
 from django.db import transaction
 from django.forms import inlineformset_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 
 from baskets.models import Basket
 from mainapp.mixin import BaseClassContextMixin
+from mainapp.models import Product
 from ordersapp.forms import OrderItemsForm
 from ordersapp.models import Order, OrderItem
 
@@ -134,3 +135,10 @@ def order_change_status(request, pk):
     order.save()
     return HttpResponseRedirect(reverse('orders:list'))
 
+
+def order_item_price_update(request, pk):
+    if request.is_ajax():
+        result = get_object_or_404(Product, pk=pk).price
+        return JsonResponse({
+            'result': result
+        })
