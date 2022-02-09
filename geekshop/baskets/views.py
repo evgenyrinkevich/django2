@@ -28,7 +28,7 @@ def basket_add(request, id):
     if request.is_ajax():
         user_select = request.user
         product = Product.objects.get(id=id)
-        baskets = Basket.objects.filter(user=user_select, product=product)
+        baskets = Basket.objects.filter(user=user_select, product=product).select_related('product')
         if baskets:
             basket = baskets.first()
             basket.quantity += 1

@@ -4,7 +4,8 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
-
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from baskets.models import Basket
 from mainapp.mixin import BaseClassContextMixin
 from mainapp.models import Product
@@ -12,7 +13,7 @@ from ordersapp.forms import OrderItemsForm
 from ordersapp.models import Order, OrderItem
 
 
-class OrderListView(ListView, BaseClassContextMixin):
+class OrderListView(LoginRequiredMixin, ListView, BaseClassContextMixin):
     model = Order
     title = 'Список заказов'
 
@@ -20,7 +21,7 @@ class OrderListView(ListView, BaseClassContextMixin):
         return Order.objects.filter(is_active=True, user=self.request.user)
 
 
-class OrderCreateView(CreateView, BaseClassContextMixin):
+class OrderCreateView(LoginRequiredMixin, CreateView, BaseClassContextMixin):
     model = Order
     fields = []
     title = 'Создание заказа'
@@ -65,7 +66,7 @@ class OrderCreateView(CreateView, BaseClassContextMixin):
         return result
 
 
-class OrderUpdateView(UpdateView, BaseClassContextMixin):
+class OrderUpdateView(LoginRequiredMixin, UpdateView, BaseClassContextMixin):
     model = Order
     fields = []
     title = 'Редактирование заказа'
@@ -76,9 +77,9 @@ class OrderUpdateView(UpdateView, BaseClassContextMixin):
 
         OrderFormSet = inlineformset_factory(Order, OrderItem, OrderItemsForm, extra=1)
         if self.request.POST:
-            formset = OrderFormSet(self.request.POST, instance=self.object)
+            formset = OrderFormSet(self.request.POST, instance=self.object, queryset=OrderItem.objects.select_related('product', 'product__category').all())
         else:
-            formset = OrderFormSet(instance=self.object)
+            formset = OrderFormSet(instance=self.object, queryset=OrderItem.objects.select_related('product', 'product__category').all())
             for form in formset:
                 if form.instance.pk:
                     form.initial['price'] = form.instance.product.price
@@ -102,17 +103,18 @@ class OrderUpdateView(UpdateView, BaseClassContextMixin):
         return result
 
 
-class OrderDeleteView(DeleteView, BaseClassContextMixin):
+class OrderDeleteView(LoginRequiredMixin, DeleteView, BaseClassContextMixin):
     model = Order
     title = 'Удаление заказа'
     success_url = reverse_lazy('orders:list')
 
 
-class OrderDetailView(DetailView, BaseClassContextMixin):
+class OrderDetailView(LoginRequiredMixin, DetailView, BaseClassContextMixin):
     model = Order
     title = 'Детали заказа'
 
 
+@login_required
 def order_forming_complete(request, pk):
     order = get_object_or_404(Order, pk=pk)
     order.status = Order.SENT_TO_PROCEED
@@ -120,6 +122,7 @@ def order_forming_complete(request, pk):
     return HttpResponseRedirect(reverse('orders:list'))
 
 
+@login_required
 def order_change_status(request, pk):
     """
     Переключает статус заказа
