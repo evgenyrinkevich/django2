@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.utils.functional import cached_property
 
 # Create your models here.
 from authapp.models import User
@@ -18,7 +19,7 @@ class Basket(models.Model):
 
     objects = BasketQuerySet.as_manager()
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='basket')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
     create_timestamp = models.DateTimeField(auto_now_add=True)
@@ -30,17 +31,16 @@ class Basket(models.Model):
     def sum(self):
         return self.quantity * self.product.price
 
-    # @property
-    # def get_baskets(self):
-    #     baskets = Basket.objects.filter(user=self.user)
-    #     return baskets
+    @cached_property
+    def get_baskets(self):
+        return self.user.basket.select_related()
 
     def total_sum(self):
-        baskets = Basket.objects.filter(user=self.user)
+        baskets = self.get_baskets
         return sum(basket.sum() for basket in baskets)
 
     def total_quantity(self):
-        baskets = Basket.objects.filter(user=self.user)
+        baskets = self.get_baskets
         return sum(basket.quantity for basket in baskets)
 
     def delete(self, *args, **kwargs):
