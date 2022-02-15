@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import user_passes_test
+from django.db.models import F
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
@@ -75,6 +76,7 @@ class CategoryDeleteView(DeleteView, BaseClassContextMixin, CustomDispatchMixin)
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.is_active = False if self.object.is_active else True
+        self.object.product_set.update(is_active=True if self.object.is_active else False)
         self.object.save()
         return HttpResponseRedirect(self.get_success_url())
 
@@ -85,6 +87,13 @@ class CategoryUpdateView(UpdateView, BaseClassContextMixin, CustomDispatchMixin)
     form_class = CategoryUpdateFormAdmin
     title = 'Админка | Обновления категории'
     success_url = reverse_lazy('admins:admin_category')
+
+    def form_valid(self, form):
+        if 'discount' in form.cleaned_data:
+            discount = form.cleaned_data['discount']
+            if discount:
+                self.object.product_set.update(price=F('price') + F('price') * (discount / 100))
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class CategoryCreateView(CreateView, BaseClassContextMixin, CustomDispatchMixin):

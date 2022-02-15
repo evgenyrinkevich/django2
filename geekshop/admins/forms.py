@@ -38,10 +38,15 @@ class CategoryUpdateFormAdmin(forms.ModelForm):
     # name = forms.CharField(widget=forms.TextInput())
     # description = forms.CharField(widget=forms.TextInput(), required=False)
     # # is_active = forms.BooleanField(widget=forms.CheckboxInput())
+    discount = forms.IntegerField(widget=forms.NumberInput(), label='изменение цены ',
+                                  required=False,
+                                  min_value=-90,
+                                  max_value=100,
+                                  initial=0)
 
     class Meta:
         model = ProductCategory
-        fields = ('name', 'description', 'is_active')
+        fields = ('name', 'description', 'discount', 'is_active')
 
     def __init__(self, *args, **kwargs):
         super(CategoryUpdateFormAdmin, self).__init__(*args, **kwargs)
