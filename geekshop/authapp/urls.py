@@ -1,7 +1,7 @@
 
 from django.urls import path
 # from authapp.views import
-from authapp.views import ProfileFormView,LoginListView,RegisterListView,Logout
+from authapp.views import ProfileFormView, LoginListView, RegisterListView, Logout
 
 app_name = 'authapp'
 urlpatterns = [

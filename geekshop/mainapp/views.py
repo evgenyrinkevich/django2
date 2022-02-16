@@ -18,6 +18,7 @@ class IndexTemplateView(TemplateView, BaseClassContextMixin):
     template_name = 'mainapp/index.html'
     title = 'Geekshop'
 
+
 def get_link_category():
     if settings.LOW_CACHE:
         key = 'link_category'
@@ -29,16 +30,18 @@ def get_link_category():
     else:
         return ProductCategory.objects.filter(is_active=True)
 
+
 def get_products(id_category):
     if settings.LOW_CACHE:
         key = f'category_{id_category}'
         link_product = cache.get(key)
         if link_product is None:
             if id_category:
-                link_product = Product.objects.filter(category_id=id_category, is_active=True).select_related('category')
+                link_product = Product.objects.filter(category_id=id_category, is_active=True).select_related(
+                    'category')
             else:
                 link_product = Product.objects.filter(is_active=True).select_related('category')
-         #   link_product = Product.objects.all().select_related('category')
+            #   link_product = Product.objects.all().select_related('category')
             cache.set(key, link_product)
         return link_product
     else:
@@ -46,6 +49,7 @@ def get_products(id_category):
             return Product.objects.filter(category_id=id_category, is_active=True).select_related('category')
         else:
             return Product.objects.all().select_related('category')
+
 
 def get_product(pk):
     if settings.LOW_CACHE:
@@ -58,13 +62,14 @@ def get_product(pk):
     else:
         return Product.objects.get(id=pk)
 
+
 def products(request, id_category=None, page=1):
     context = {
         'title': 'Geekshop | Каталог',
     }
 
-    products = get_products(id_category)
-    paginator = Paginator(products, per_page=3)
+    products_list = get_products(id_category)
+    paginator = Paginator(products_list, per_page=3)
 
     try:
         products_paginator = paginator.page(page)

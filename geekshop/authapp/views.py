@@ -21,6 +21,11 @@ class LoginListView(LoginView, BaseClassContextMixin):
     form_class = UserLoginForm
     title = 'GeekShop - Авторизация'
 
+    # def get(self, request, *args, **kwargs):
+    #     if request.user.is_authenticated:
+    #         return HttpResponseRedirect(reverse('index'))
+    #     return HttpResponseRedirect(reverse('authapp:login'))
+
 
 class RegisterListView(FormView, BaseClassContextMixin):
     model = User
@@ -46,7 +51,6 @@ class RegisterListView(FormView, BaseClassContextMixin):
     def verify(self, email, activation_key):
         try:
             user = User.objects.get(email=email)
-            print(user.activation_key)
             if user.activation_key == activation_key and not user.is_activation_key_expired():
                 user.activation_key = ''
                 user.is_active = True
