@@ -33,20 +33,26 @@ class UserAdminProfileForm(UserProfilerForm):
             field.widget.attrs['class'] = 'form-control py-4'
         self.fields['image'].widget.attrs['class'] = 'custom-file-input'
 
+
 class CategoryUpdateFormAdmin(forms.ModelForm):
     # name = forms.CharField(widget=forms.TextInput())
     # description = forms.CharField(widget=forms.TextInput(), required=False)
     # # is_active = forms.BooleanField(widget=forms.CheckboxInput())
-
+    discount = forms.IntegerField(widget=forms.NumberInput(), label='изменение цены ',
+                                  required=False,
+                                  min_value=-90,
+                                  max_value=100,
+                                  initial=0)
 
     class Meta:
         model = ProductCategory
-        fields = ('name', 'description')
+        fields = ('name', 'description', 'discount', 'is_active')
 
     def __init__(self, *args, **kwargs):
         super(CategoryUpdateFormAdmin, self).__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control py-4'
+
 
 class ProductsForm(forms.ModelForm):
     category = forms.ModelChoiceField(queryset=ProductCategory.objects.all())
@@ -64,6 +70,7 @@ class ProductsForm(forms.ModelForm):
             else:
                 field.widget.attrs['class'] = 'form-control py-4'
         self.fields['image'].widget.attrs['class'] = 'custom-file-input'
+
 
 class ProductUpdate(ProductsForm):
     category = forms.ModelChoiceField(queryset=ProductCategory.objects.all().select_related(),

@@ -14,6 +14,8 @@
 
                 <h1 class="my-4">GeekShop</h1>
                 <div class="list-group">
+                    <a href="{% url 'mainapp:products' %}"
+                           class="list-group-item">Все товары</a>
                     {% for category in categories %}
                         <a href="{% url 'mainapp:category' category.id %}"
                            class="list-group-item">{{ category.name }}</a>
@@ -21,7 +23,6 @@
                 </div>
 
             </div>
-            <!-- /.col-lg-3 -->
 
             <div class="col-lg-9">
 
@@ -96,7 +97,7 @@
 {% block footer %}
     <footer class="py-5 bg-dark">
         <div class="container">
-            <p class="m-0 text-center text-white">Copyright &copy; GeekShop 2021</p>
+            <p class="m-0 text-center text-white">Copyright &copy; GeekShop {% now "Y" %}</p>
         </div>
     </footer>
 {% endblock %}
