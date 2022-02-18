@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-3!qm%#5%$5g0-(%vu4%j@^x9(nvvh5h*wm^kngwb7dyq&qx4*c
 
 load_dotenv(BASE_DIR / '.env')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -167,17 +167,19 @@ LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_ERROR_URL = '/'
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 DOMAIN_NAME = 'http://localhost:8000'
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 25
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 465
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-EMAIL_USE_SSL = True if os.getenv('EMAIL_USE_SSL') == 'True' else False
+# EMAIL_USE_SSL = True if os.getenv('EMAIL_USE_SSL') == 'True' else False
 
-EMAIL_HOST_USER, EMAIL_HOST_PASSWORD = None, None
+EMAIL_USE_SSL = True
+# EMAIL_HOST_USER, EMAIL_HOST_PASSWORD = None, None
 
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = 'tmp/email-messages/'
+# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+# EMAIL_FILE_PATH = 'tmp/email-messages/'
 
 ACTIVATION_KEY_TTL = 48
 

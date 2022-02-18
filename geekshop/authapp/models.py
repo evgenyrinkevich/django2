@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
 from django.db import models
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 
 from django.utils.timezone import now
 
@@ -16,6 +17,7 @@ class User(AbstractUser):
     image = models.ImageField(upload_to='users_image', blank=True)
     age = models.PositiveIntegerField(default=18)
     activation_key = models.CharField(max_length=128, blank=True)
+    email = models.EmailField(_('email address'), blank=True, unique=True)
 
     def is_activation_key_expired(self):
         return now() - self.date_joined > timedelta(hours=ACTIVATION_KEY_TTL)

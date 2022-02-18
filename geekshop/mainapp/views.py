@@ -41,7 +41,6 @@ def get_products(id_category):
                     'category')
             else:
                 link_product = Product.objects.filter(is_active=True).select_related('category')
-            #   link_product = Product.objects.all().select_related('category')
             cache.set(key, link_product)
         return link_product
     else:
@@ -68,7 +67,7 @@ def products(request, id_category=None, page=1):
         'title': 'Geekshop | Каталог',
     }
 
-    products_list = get_products(id_category)
+    products_list = get_products(id_category).order_by('name')
     paginator = Paginator(products_list, per_page=3)
 
     try:

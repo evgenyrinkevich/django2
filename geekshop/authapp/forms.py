@@ -59,7 +59,6 @@ class UserRegisterForm(UserCreationForm):
 
 
 class UserProfilerForm(UserChangeForm):
-    # first_name = forms.CharField(widget=forms.TextInput(),validators=[validate_name])
     image = forms.ImageField(widget=forms.FileInput(), required=False)
     age = forms.IntegerField(widget=forms.NumberInput(), required=False)
 
@@ -80,13 +79,13 @@ class UserProfilerForm(UserChangeForm):
 class UserProfileEditForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = '__all__'
+        exclude = ('user',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control py-4'
-            if field_name == 'user':
-                field.widget = HiddenInput()
-            if field_name == 'gender':
+            if field_name != 'gender':
+                field.widget.attrs['class'] = 'form-control py-4'
+            else:
                 field.widget.attrs['class'] = 'form-control'

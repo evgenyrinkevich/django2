@@ -1,6 +1,8 @@
+from django.conf import settings
 from django.contrib import messages, auth
 from django.contrib.auth import get_user_model
 from django.contrib.auth.views import LoginView, LogoutView
+from django.core.mail import send_mail
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.http import HttpResponseRedirect
@@ -21,47 +23,45 @@ class LoginListView(LoginView, BaseClassContextMixin):
     form_class = UserLoginForm
     title = 'GeekShop - Авторизация'
 
-    # def get(self, request, *args, **kwargs):
-    #     if request.user.is_authenticated:
-    #         return HttpResponseRedirect(reverse('index'))
-    #     return HttpResponseRedirect(reverse('authapp:login'))
-
 
 class RegisterListView(FormView, BaseClassContextMixin):
     model = User
     template_name = 'authapp/register.html'
     form_class = UserRegisterForm
     title = 'GeekShop - Регистрация'
-    success_url = reverse_lazy('auth:login')
+    # success_url = reverse_lazy('auth:login')
 
     def post(self, request, *args, **kwargs):
 
         form = self.form_class(data=request.POST)
         if form.is_valid():
             user = form.save()
-            user.send_verify_mail()
-            messages.set_level(request, messages.SUCCESS)
-            messages.success(request, 'Регистрация успешна, ссылка для активации выслана на указанный email!')
+            if self.send_verify_link(user):
+                messages.set_level(request, messages.SUCCESS)
+                messages.success(request, 'Вы успешно зарегистрировались! Проверьте почту!')
             return HttpResponseRedirect(reverse('authapp:login'))
         else:
             messages.set_level(request, messages.ERROR)
             messages.error(request, form.errors)
-            return render(request, self.template_name, {'form': form})
+        return render(request, self.template_name, {'form': form})
+
+    @staticmethod
+    def send_verify_link(user):
+        verify_link = reverse('authapp:verify', args=[user.email, user.activation_key])
+        subject = f'Для активации учетной записи {user.username} пройдите по ссылке'
+        message = f'Для подтверждения учетной записи {user.username} на портале \n {settings.DOMAIN_NAME}{verify_link}'
+        return send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
 
     def verify(self, email, activation_key):
         try:
             user = User.objects.get(email=email)
-            if user.activation_key == activation_key and not user.is_activation_key_expired():
+            if user and user.activation_key == activation_key and not user.is_activation_key_expired():
                 user.activation_key = ''
                 user.is_active = True
                 user.save()
-                auth.login(self, user, backend='django.contrib.auth.backends.ModelBackend')
-                return render(self, 'authapp/verification.html')
-            else:
-                print(f'error activation user: {user}')
-                return HttpResponseRedirect(reverse('authapp:register'))
+                auth.login(self, user)
+            return render(self, 'authapp/verification.html')
         except Exception as e:
-            print(f'error activation user: {e.args}')
             return HttpResponseRedirect(reverse('index'))
 
 
@@ -73,11 +73,14 @@ class ProfileFormView(UpdateView, BaseClassContextMixin, UserDispatchMixin):
 
     def post(self, request, *args, **kwargs):
         form = UserProfilerForm(request.POST, request.FILES, instance=request.user)
-        profile_form = UserProfileEditForm(request.POST, request.FILES,
-                                           instance=request.user.userprofile)
+        profile_form = UserProfileEditForm(request.POST, request.FILES, instance=request.user.userprofile)
+        print('errors:')
+        print(profile_form.errors)
         if form.is_valid() and profile_form.is_valid():
             form.save()
-            return redirect(self.get_success_url())
+            return redirect(self.success_url)
+        else:
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
     def form_valid(self, form):
         messages.set_level(self.request, messages.SUCCESS)
