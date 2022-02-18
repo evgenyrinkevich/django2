@@ -9,7 +9,7 @@ from django.core.files.temp import NamedTemporaryFile
 from django.utils import timezone
 from urllib.parse import urlencode, urlunparse
 from social_core.exceptions import AuthForbidden
-from authapp.models import UserProfile
+from authapp.models import UserProfile, User
 
 
 def save_user_profile(backend, user, response, *args, **kwargs):
@@ -29,6 +29,8 @@ def save_user_profile(backend, user, response, *args, **kwargs):
                           ))
 
     resp = requests.get(api_url)
+    if User.objects.filter(email=user.email).exists():
+        print('integrity error')
     if resp.status_code != 200:
         return
     data = resp.json()['response'][0]

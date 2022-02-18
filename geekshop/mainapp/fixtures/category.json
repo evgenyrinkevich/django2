@@ -11,7 +11,7 @@
     "model": "mainapp.productcategory",
     "pk": 5,
     "fields": {
-      "name": "Аксесуары",
+      "name": "Аксессуары",
       "description": ""
     }
   },

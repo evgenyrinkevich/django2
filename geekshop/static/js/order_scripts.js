@@ -68,7 +68,7 @@ window.onload = function (event) {
                 let orderitemPrice = parseFloat(data.result);
                 if (isNaN(quantity_arr[orderitem_num])) {
                        quantity_arr[orderitem_num] = 0;
-                   };
+                   }
                 price_arr[orderitem_num] = orderitemPrice;
 
             }
